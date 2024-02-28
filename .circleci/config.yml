@@ -2,7 +2,6 @@ version: 2
 jobs:
   build:
     docker:
-      # specify the version you desire here
       - image: circleci/openjdk:11-jdk
     working_directory: /tmp/workspace
     steps:
@@ -34,15 +33,16 @@ jobs:
           command: aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 054088505342.dkr.ecr.us-east-1.amazonaws.com && docker build -t ticketingapp /tmp/workspace && docker tag ticketingapp:latest 054088505342.dkr.ecr.us-east-1.amazonaws.com/ticketingapp:latest && docker push 054088505342.dkr.ecr.us-east-1.amazonaws.com/ticketingapp:latest
   deploy-job:
     docker:
-      #specify the version you desire here
       - image: circleci/node:10.0.0
     steps:
       - run:
           name: Execute Deployment Script
           command: |
-            ssh -o "StrictHostKeyChecking=no" ec2-user@ec2-54-175-112-160.compute-1.amazonaws.com <<'ENDSSH'
-            /bin/bash bin/deploy_image.sh
-            docker ps
+            ssh -o "StrictHostKeyChecking=no" -i "ticketingkey.pem" ec2-user@ec2-54-175-112-160.compute-1.amazonaws.com << 'ENDSSH'
+              /bin/bash bin/deploy_image.sh
+              docker ps
+            ENDSSH
+
 workflows:
   version: 2
   build_and_test:
